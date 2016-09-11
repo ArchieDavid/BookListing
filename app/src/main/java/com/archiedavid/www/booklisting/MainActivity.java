@@ -1,11 +1,11 @@
 package com.archiedavid.www.booklisting;
 
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,8 +19,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+    private BookAdapter mBookAdapter;
 
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static String searchStr = "Gladwell";
@@ -32,18 +34,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ListView bookListView = (ListView) findViewById(R.id.list);
+        mBookAdapter = new BookAdapter(this, new ArrayList<Book>());
+
+        bookListView.setAdapter(mBookAdapter);
+
         BookAsyncTask task = new BookAsyncTask();
         task.execute();
     }
-
-    private void updateUi(Book book) {
-        TextView titleTextView = (TextView) findViewById(R.id.title);
-        titleTextView.setText(book.getMBookTitle());
-
-        TextView authorTextView = (TextView) findViewById(R.id.author);
-        authorTextView.setText(book.getMBookAuthor());
-    }
-
 
     private class BookAsyncTask extends AsyncTask<URL, Void, Book> {
 
@@ -64,10 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Book book) {
-            if (book == null) {
-                return;
+            mBookAdapter.clear();
+
+            if (book != null) {
+                mBookAdapter.addAll(book);
             }
-            updateUi(book);
         }
 
         private URL createUrl(String stringUrl) {
@@ -139,10 +138,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONObject baseJsonResponse = new JSONObject(bookJSON);
                 JSONArray itemsArray = baseJsonResponse.getJSONArray("items");
-
-
+                
                 if (itemsArray.length() > 0) {
-
                     JSONObject firstFeature = itemsArray.getJSONObject(0);
                     JSONObject properties = firstFeature.getJSONObject("volumeInfo");
 
