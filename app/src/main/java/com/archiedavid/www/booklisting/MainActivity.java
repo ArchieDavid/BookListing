@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private BookAdapter mBookAdapter;
@@ -43,11 +44,12 @@ public class MainActivity extends AppCompatActivity {
         task.execute();
     }
 
-    private class BookAsyncTask extends AsyncTask<URL, Void, Book> {
+    private class BookAsyncTask extends AsyncTask<URL, Void, List<Book>>{
 
         @Override
-        protected Book doInBackground(URL... urls) {
+        protected List<Book> doInBackground(URL... urls) {
 
+            //example url = https://www.googleapis.com/books/v1/volumes?q=Gladwell
             URL url = createUrl(BOOK_REQUEST_URL);
 
             String jsonResponse = "";
@@ -56,16 +58,16 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Problem making the HTTP request.", e);
             }
-            Book book = extractFeatureFromJson(jsonResponse);
-            return book;
+            List<Book> books = extractFeatureFromJson(jsonResponse);
+            return books;
         }
 
         @Override
-        protected void onPostExecute(Book book) {
+        protected void onPostExecute(List<Book> books) {
             mBookAdapter.clear();
 
-            if (book != null) {
-                mBookAdapter.addAll(book);
+            if (books != null) {
+                mBookAdapter.addAll(books);
             }
         }
 
@@ -129,37 +131,40 @@ public class MainActivity extends AppCompatActivity {
             return output.toString();
         }
 
-        private Book extractFeatureFromJson(String bookJSON) {
+        private List<Book> extractFeatureFromJson(String bookJSON) {
 
             if (TextUtils.isEmpty(bookJSON)) {
                 return null;
             }
 
+            List<Book> books = new ArrayList<>();
+
             try {
                 JSONObject baseJsonResponse = new JSONObject(bookJSON);
                 JSONArray itemsArray = baseJsonResponse.getJSONArray("items");
-                
                 if (itemsArray.length() > 0) {
-                    JSONObject firstFeature = itemsArray.getJSONObject(0);
-                    JSONObject properties = firstFeature.getJSONObject("volumeInfo");
+                    for (int i = 0; i < itemsArray.length(); i++) {
+                        JSONObject itemsArrayJSONObject = itemsArray.getJSONObject(i);
+                        JSONObject volumeInfo = itemsArrayJSONObject.getJSONObject("volumeInfo");
+                        String title = volumeInfo.getString("title");
 
-                    String title = properties.getString("title");
-                    String firstAuthor = null;
+                        StringBuilder authors = null;
+                        if (volumeInfo.has("authors")) {
+                            JSONArray authorsArray = volumeInfo.getJSONArray("authors");
 
-                    JSONArray authorsArray = properties.getJSONArray("authors");
-                    if (authorsArray.length() > 0) {
-
-                        for (int i = 0; i < authorsArray.length(); i++) {
-                            firstAuthor = authorsArray.getString(i);
+                            for (int j = 0; j < authorsArray.length(); j++) {
+                                //authors.append(authorsArray.getString(i));
+                            }
+                            Book book = new Book(title, "N/A");
+                            books.add(book);
                         }
-
                     }
-                    return new Book(title, firstAuthor);
                 }
+
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Problem parsing the book JSON results", e);
             }
-            return null;
+            return books;
         }
     }
 }
