@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -24,33 +27,39 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private BookAdapter mBookAdapter;
-
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private static String searchStr = "Gladwell";
-    private static final String BOOK_REQUEST_URL =
-            ("https://www.googleapis.com/books/v1/volumes?q=" + searchStr);
+    private static final String BOOK_REQUEST_URL = "https://www.googleapis.com/books/v1/volumes?q=";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final EditText inputString = (EditText) findViewById(R.id.edit_text_view);
+
+        Button searchButton = (Button) findViewById(R.id.searchBtn);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String search = inputString.getText().toString().replace(" ", "+");
+                String url = (BOOK_REQUEST_URL + search);
+                BookAsyncTask task = new BookAsyncTask();
+                task.execute(url);
+            }
+        });
+
         ListView bookListView = (ListView) findViewById(R.id.list);
         mBookAdapter = new BookAdapter(this, new ArrayList<Book>());
-
         bookListView.setAdapter(mBookAdapter);
-
-        BookAsyncTask task = new BookAsyncTask();
-        task.execute();
     }
 
-    private class BookAsyncTask extends AsyncTask<URL, Void, List<Book>>{
+    private class BookAsyncTask extends AsyncTask<String, Void, List<Book>>{
 
         @Override
-        protected List<Book> doInBackground(URL... urls) {
+        protected List<Book> doInBackground(String... urls) {
 
             //example url = https://www.googleapis.com/books/v1/volumes?q=Gladwell
-            URL url = createUrl(BOOK_REQUEST_URL);
+            URL url = createUrl(urls[0]);
 
             String jsonResponse = "";
             try {
