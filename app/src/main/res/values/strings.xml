@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">BookListing</string>
+    <!-- Title for the application. [CHAR LIMIT=12] -->
+    <string name="app_name">Book Listing</string>
+
+    <!-- Header that goes above the mBookTitle of the earthquake event [CHAR LIMIT=50] -->
+    <string name="book_title">Title</string>
+
+    <!-- Header that goes above the date of the earthquake event [CHAR LIMIT=50] -->
+    <string name="book_author">Author</string>
+
 </resources>
