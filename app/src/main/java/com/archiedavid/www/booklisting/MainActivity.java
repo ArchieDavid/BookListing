@@ -148,14 +148,17 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject volumeInfo = itemsArrayJSONObject.getJSONObject("volumeInfo");
                         String title = volumeInfo.getString("title");
 
-                        StringBuilder authors = null;
+                        StringBuilder authors = new StringBuilder();
                         if (volumeInfo.has("authors")) {
                             JSONArray authorsArray = volumeInfo.getJSONArray("authors");
 
                             for (int j = 0; j < authorsArray.length(); j++) {
-                                //authors.append(authorsArray.getString(i));
+                                if(j >0){
+                                    authors.append(", ");
+                                }
+                                authors.append(authorsArray.getString(j));
                             }
-                            Book book = new Book(title, "N/A");
+                            Book book = new Book(title, authors.toString());
                             books.add(book);
                         }
                     }
