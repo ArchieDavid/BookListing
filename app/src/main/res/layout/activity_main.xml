@@ -34,7 +34,6 @@
         android:divider="@null"
         android:dividerHeight="0dp"
         android:orientation="vertical"/>
-
 </RelativeLayout>
 
 
