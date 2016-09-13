@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ListView bookListView = (ListView) findViewById(R.id.list);
+        bookListView.setEmptyView(findViewById(R.id.empty_list_view));
         mBookAdapter = new BookAdapter(this, new ArrayList<Book>());
         bookListView.setAdapter(mBookAdapter);
     }
