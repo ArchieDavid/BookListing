@@ -27,18 +27,25 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private  Context mContext;
     private BookAdapter mBookAdapter;
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String BOOK_REQUEST_URL = "https://www.googleapis.com/books/v1/volumes?q=";
+    ArrayList<Book> booksList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "in oncreate()");
         setContentView(R.layout.activity_main);
+        if(savedInstanceState == null || !savedInstanceState.containsKey("keyBookList")) {
+            booksList = new ArrayList<>();
+        }
+        else {
+            booksList = savedInstanceState.getParcelableArrayList("keyBookList");
+        }
 
         final EditText inputString = (EditText) findViewById(R.id.edit_text_view);
 
@@ -54,14 +61,20 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_SHORT).show();
                 }
-
             }
         });
 
         ListView bookListView = (ListView) findViewById(R.id.list);
         bookListView.setEmptyView(findViewById(R.id.empty_list_view));
-        mBookAdapter = new BookAdapter(this, new ArrayList<Book>());
+        mBookAdapter = new BookAdapter(this, booksList);
         bookListView.setAdapter(mBookAdapter);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.v(LOG_TAG, "in onSaveInstanceState()");
+        outState.putParcelableArrayList("keyBookList", booksList);
+        super.onSaveInstanceState(outState);
     }
 
     public boolean isOnline(Context context) {
@@ -73,10 +86,10 @@ public class MainActivity extends AppCompatActivity {
         return isConnected;
     }
 
-    private class BookAsyncTask extends AsyncTask<String, Void, List<Book>>{
+    private class BookAsyncTask extends AsyncTask<String, Void, ArrayList<Book>>{
 
         @Override
-        protected List<Book> doInBackground(String... urls) {
+        protected ArrayList<Book> doInBackground(String... urls) {
 
             //example url = https://www.googleapis.com/books/v1/volumes?q=Gladwell
             URL url = createUrl(urls[0]);
@@ -87,12 +100,12 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Problem making the HTTP request.", e);
             }
-            List<Book> books = extractFeatureFromJson(jsonResponse);
+            ArrayList<Book> books = extractFeatureFromJson(jsonResponse);
             return books;
         }
 
         @Override
-        protected void onPostExecute(List<Book> books) {
+        protected void onPostExecute(ArrayList<Book> books) {
             mBookAdapter.clear();
 
             if (books != null) {
@@ -160,13 +173,13 @@ public class MainActivity extends AppCompatActivity {
             return output.toString();
         }
 
-        private List<Book> extractFeatureFromJson(String bookJSON) {
+        private ArrayList<Book> extractFeatureFromJson(String bookJSON) {
 
             if (TextUtils.isEmpty(bookJSON)) {
                 return null;
             }
 
-            List<Book> books = new ArrayList<>();
+            booksList = new ArrayList<>();
 
             try {
                 JSONObject baseJsonResponse = new JSONObject(bookJSON);
@@ -188,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
                                 authors.append(authorsArray.getString(j));
                             }
                             Book book = new Book(title, authors.toString());
-                            books.add(book);
+                            booksList.add(book);
                         }
                     }
                 }
@@ -196,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Problem parsing the book JSON results", e);
             }
-            return books;
+            return booksList;
         }
     }
 }
