@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/searchBtn"
         android:layout_centerHorizontal="true"
-        android:text="Please enter your query"
+        android:text="Please enter a valid query"
         android:visibility="gone"/>
 
     <ListView
